@@ -1,0 +1,16 @@
+{
+	"product1": {
+		"name": "Microondas",
+		"price": 70000,
+		"code": 2450,
+		"description": "Un microondas genial",
+		"category": "Hogar"
+	},
+	"product2": {
+		"name": "Tostadora",
+		"price": 80000,
+		"code": 5450,
+		"description": "Una tostadora genial",
+		"category": "Hogar"
+	}
+}
