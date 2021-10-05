@@ -25,8 +25,8 @@ const productosSchema = new mongoose.Schema({
 		required: [true, "La categoria es requerida"],
 		enum: ["Tecnología", "Ropa", "Hogar", "Accesorios"],
 	},
-	likes: {
-		type: [ObjectID],
+	postedBy: {
+		type: ObjectID,
 	},
 });
 
