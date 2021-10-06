@@ -23,7 +23,10 @@ const productosSchema = new mongoose.Schema({
 	category: {
 		type: String,
 		required: [true, "La categoria es requerida"],
-		enum: ["Tecnología", "Ropa", "Hogar", "Accesorios"],
+		enum: {
+			values: ["Tecnología", "Ropa", "Hogar", "Accesorios"],
+			message: "La categoria {VALUE} es invalida",
+		},
 	},
 	postedBy: {
 		type: ObjectID,

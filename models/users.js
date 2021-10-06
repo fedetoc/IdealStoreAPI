@@ -2,10 +2,14 @@ const mongoose = require("mongoose");
 const { encrypt } = require("../encryption/encryption-module");
 
 const usersSchema = mongoose.Schema({
-	username: {
+	email: {
 		type: String,
 		required: [true, "El username es requerido"],
-		maxLength: [10, "El usuario solo puede tener hasta 10 caracteres"],
+		maxLength: [20, "El usuario solo puede tener hasta 20 caracteres"],
+		match: [
+			/(?=.*@)(?=.*@[a-z]*\.com(\.[a-z]{2,3})?$)/,
+			"Email ingresado no valido",
+		],
 	},
 	password: {
 		type: String,
@@ -24,8 +28,8 @@ const usersSchema = mongoose.Schema({
 	},
 	dni: {
 		type: String,
-		minLength: [true, "DNI invalido"],
-		maxLength: [true, "DNI invalido"],
+		minLength: [8, "DNI invalido"],
+		maxLength: [8, "DNI invalido"],
 		required: true,
 	},
 	likes: {

@@ -8,3 +8,7 @@ exports.catchAsync = function (fn) {
 exports.calcSkippedDocs = function (page) {
 	return page === "1" ? 0 : 20 * page - 1;
 };
+
+exports.arrayToObject = function (arr) {
+	return Object.fromEntries(arr);
+};

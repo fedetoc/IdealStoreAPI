@@ -13,6 +13,13 @@ exports.getProductById = catchAsync(async function (req, resp, next) {
 	sendOkResponse(resp, docs);
 });
 
-const sendOkResponse = function (respObj, data) {
-	respObj.status(200).json({ status: 200, message: "OK", data });
+exports.postAProduct = catchAsync(async function (req, resp, next) {
+	const newProduct = new Productos(req.body);
+	console.log(req.body);
+	await newProduct.save();
+	sendOkResponse(resp, {}, 201, "Created");
+});
+
+const sendOkResponse = function (respObj, data, statusCode = 200, msg = "OK") {
+	respObj.status(statusCode).json({ status: statusCode, message: msg, data });
 };
