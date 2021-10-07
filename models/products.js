@@ -31,6 +31,11 @@ const productosSchema = new mongoose.Schema({
 	postedBy: {
 		type: ObjectID,
 	},
+	postedOn: {
+		type: Date,
+		default: Date.now(),
+		immutable: true,
+	},
 });
 
 exports.Productos = mongoose.model("Productos", productosSchema);

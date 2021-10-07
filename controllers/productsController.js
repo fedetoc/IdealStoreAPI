@@ -1,5 +1,5 @@
-const { Productos } = require("./models/products");
-const { catchAsync, calcSkippedDocs } = require("./utils");
+const { Productos } = require("../models/products");
+const { catchAsync, calcSkippedDocs } = require("../utils");
 
 exports.getAllProducts = catchAsync(async function (req, resp, next) {
 	let query = Productos.find({}).sort("-likes");

@@ -24,4 +24,28 @@ class UnauthorizedUserError extends AppError {
 	}
 }
 
-module.exports.Errors = { AppError, ValidationError, UnauthorizedUserError };
+class RegistroError extends AppError {
+	constructor(badData, message) {
+		super(message, "Registro Error", 400);
+		this.badData = badData;
+	}
+}
+
+class UserAlreadyExist extends AppError {
+	constructor(email) {
+		super(
+			`Ya existe un usuario registrado con el mail ${email}`,
+			"Error de registro",
+			401
+		),
+			(this.emailInserted = email);
+	}
+}
+
+module.exports.Errors = {
+	AppError,
+	ValidationError,
+	UnauthorizedUserError,
+	UserAlreadyExist,
+	RegistroError,
+};

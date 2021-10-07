@@ -4,9 +4,10 @@ const { arrayToObject } = require("../utils");
 exports.errorHandle = function (err, resp) {
 	let formatedErr;
 	if (err.name === "ValidationError") formatedErr = handleValidationErr(err);
+	if (err instanceof Errors.UserAlreadyExist) formatedErr = err;
 	formatedErr =
 		formatedErr || new Errors.AppError("Ocurrio un error inesperado");
-	sendErrorResponse(formatedErr, resp);
+	sendErrorResponse(err, formatedErr, resp);
 };
 
 const handleValidationErr = function (err) {
@@ -14,7 +15,8 @@ const handleValidationErr = function (err) {
 	const intendedVals = [];
 	const iterateFieldsRetMessageObj = badFields.map(el => {
 		const validatorObj = err.errors[el];
-		validatorObj.kind === "enum" && intendedVals.push([el, validatorObj.value]);
+		if (validatorObj.kind === "enum" || validatorObj.kind === "regexp")
+			intendedVals.push([el, validatorObj.value]);
 		return [el, validatorObj.message];
 	});
 	return new Errors.ValidationError(
@@ -24,13 +26,13 @@ const handleValidationErr = function (err) {
 	);
 };
 
-const sendErrorResponse = function (formatedErr, resp) {
+const sendErrorResponse = function (originalErr, formatedErr, resp) {
 	const { code, message } = formatedErr;
-	console.log(formatedErr.trace);
-	if (process.env.NODE_ENV === "production") delete formatedErr.trace;
+	const prod = process.env.NODE_ENV === "production";
+	prod && delete formatedErr.trace;
 	resp.status(code).json({
 		status: code,
 		message: message,
-		details: formatedErr,
+		details: !prod && code === 500 ? originalErr : formatedErr,
 	});
 };
