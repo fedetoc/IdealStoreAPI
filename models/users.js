@@ -58,6 +58,7 @@ const encryptPassword = async function (next) {
 	await encrypt(this.password, (err, encrypted) => {
 		if (err) return next(err);
 		this.password = encrypted;
+		this.confirmPassword = null;
 		return next();
 	});
 };
