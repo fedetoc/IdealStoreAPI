@@ -1,0 +1,7 @@
+extends layout.pug
+
+block content
+    form(action=verifyUrl method='POST')
+        h1.title Welcome to Ideal Store!
+        p.paragraph Hi #{userName} ! We are very glad that you are here. Please verify your account clicking on the button below
+        button.button-verify(type="submit") Verify your account

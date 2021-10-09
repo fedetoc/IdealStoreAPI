@@ -3,7 +3,6 @@ const { encrypt } = require("../encryption/encryption-module");
 const { Errors } = require("../error handler/errorClasses");
 
 const validatePasswordCoincidence = function (v) {
-	console.log(this);
 	return new Promise((resolve, reject) =>
 		v === this.password
 			? resolve(true)
@@ -15,7 +14,6 @@ const usersSchema = mongoose.Schema({
 	email: {
 		type: String,
 		required: [true, "El username es requerido"],
-		maxLength: [20, "El usuario solo puede tener hasta 20 caracteres"],
 		match: [
 			/(?=.*@)(?=.*@[a-z]*\.com(\.[a-z]{2,3})?$)/,
 			"Email ingresado no valido",
@@ -41,6 +39,7 @@ const usersSchema = mongoose.Schema({
 	name: {
 		type: String,
 		required: [true, "El nombre es requerido"],
+		maxLength: [20, "El usuario solo puede tener hasta 20 caracteres"],
 	},
 	dni: {
 		type: String,
@@ -51,6 +50,15 @@ const usersSchema = mongoose.Schema({
 	likes: {
 		type: [Object],
 		default: [],
+	},
+	verified: {
+		type: Boolean,
+		default: false,
+	},
+	created: {
+		type: Date,
+		immutable: true,
+		default: Date.now(),
 	},
 });
 

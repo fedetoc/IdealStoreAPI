@@ -1,0 +1,52 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='UTF-8')
+    meta(http-equiv='X-UA-Compatible' content='IE=edge')
+    meta(name='viewport' content='width=device-width, initial-scale=1.0')
+    meta(http-equiv="Content-Security-Policy" content="default-src 'self' *.127.0.0.1:3000; img-src *; framce-src *")
+    title
+    link(rel='preconnect' href='https://fonts.googleapis.com')
+    link(rel='preconnect' href='https://fonts.gstatic.com' crossorigin)
+    link(href='https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;1,300&display=swap' rel='stylesheet')
+    style.
+      body {
+      background-color: rgb(238, 238, 238);
+      font-family: "Nunito", sans-serif;
+      height: 90vh;
+      display: flex;
+      justify-items: center;
+      }
+      .main {
+      height: 80%;
+      flex: 1;
+      margin: auto 0;
+      background-color: white;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      }
+      .title {
+      font-size: 2.6rem;
+      font-weight: 400;
+      }
+      .paragraph {
+      line-height: 1.2;
+      font-weight: 300;
+      font-size: 1.3rem;
+      }
+      .button-verify {
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      padding: 0.7rem 1rem;
+      background-color: rgb(72, 72, 218);
+      color: rgb(255, 255, 255);
+      font-weight: 400;
+      margin-top: 2rem;
+      }
+  body
+    section.main
+      block content  

@@ -4,7 +4,7 @@ class AppError extends Error {
 		this.message = message;
 		this.code = code;
 		this.type = type;
-		this.trace = Error.captureStackTrace(this, AppError);
+		Error.captureStackTrace(this, this.constructor);
 	}
 }
 
@@ -42,10 +42,45 @@ class UserAlreadyExist extends AppError {
 	}
 }
 
+class MailError extends AppError {
+	constructor(type, emailTo, intendedMailType, errorDetail) {
+		const msg =
+			type === "SMTP Server Connection"
+				? "Hubo un error al intentar conectar con el servidor, por lo que no se pudo enviar el mail"
+				: `Hubo un error al intentar enviar un mail a ${emailTo}`;
+		super(msg, type, 503);
+		(this.recipient = emailTo),
+			(this.intendedOperation = intendedMailType),
+			(this.errorDetail =
+				process.env.NODE_ENV === "development" && errorDetail);
+	}
+}
+
+class VerificationFailed extends AppError {
+	constructor(user, reason, signInDate) {
+		const msg =
+			reason === "Time expired"
+				? `No fue posible verificar el usuario, expiro el periodo de ${process.env.USER_VERIFICATION_TIMEMINS} minutos. Por favor registrese nuevamente`
+				: "Hubo un error al verificar al usuaio. Intente nuevamente";
+		super(msg, "Verification Failed", 401);
+		(this.user = user), (this.signInDate = signInDate);
+	}
+}
+
+class UserNotFound extends AppError {
+	constructor(intendedUser = "Not available") {
+		super("El usuario consultado no se encuentra en la BBDD", "Not found", 404);
+		this.userNotFound = intendedUser;
+	}
+}
+
 module.exports.Errors = {
 	AppError,
 	ValidationError,
 	UnauthorizedUserError,
 	UserAlreadyExist,
 	RegistroError,
+	MailError,
+	VerificationFailed,
+	UserNotFound,
 };

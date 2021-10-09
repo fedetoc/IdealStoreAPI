@@ -4,7 +4,12 @@ const { arrayToObject } = require("../utils");
 exports.errorHandle = function (err, resp) {
 	let formatedErr;
 	if (err.name === "ValidationError") formatedErr = handleValidationErr(err);
-	if (err instanceof Errors.UserAlreadyExist) formatedErr = err;
+	if (
+		err instanceof Errors.UserAlreadyExist ||
+		err instanceof Errors.VerificationFailed ||
+		err instanceof Errors.UserNotFound
+	)
+		formatedErr = err;
 	formatedErr =
 		formatedErr || new Errors.AppError("Ocurrio un error inesperado");
 	sendErrorResponse(err, formatedErr, resp);
@@ -29,10 +34,10 @@ const handleValidationErr = function (err) {
 const sendErrorResponse = function (originalErr, formatedErr, resp) {
 	const { code, message } = formatedErr;
 	const prod = process.env.NODE_ENV === "production";
-	prod && delete formatedErr.trace;
 	resp.status(code).json({
 		status: code,
 		message: message,
-		details: !prod && code === 500 ? originalErr : formatedErr,
+		details: !prod ? originalErr : formatedErr,
+		trace: !prod && formatedErr.stack,
 	});
 };
