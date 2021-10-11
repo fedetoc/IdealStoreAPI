@@ -40,6 +40,7 @@ const decryption = function (hashToBeDecrypted, fn) {
 				},
 				null
 		  );
+	return decrypted;
 };
 
 exports.encrypt = promisify(encryption);

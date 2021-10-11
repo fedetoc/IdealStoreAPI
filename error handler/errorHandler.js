@@ -7,7 +7,8 @@ exports.errorHandle = function (err, resp) {
 	if (
 		err instanceof Errors.UserAlreadyExist ||
 		err instanceof Errors.VerificationFailed ||
-		err instanceof Errors.UserNotFound
+		err instanceof Errors.UserNotFound ||
+		err instanceof Errors.UnauthorizedUserError
 	)
 		formatedErr = err;
 	formatedErr =

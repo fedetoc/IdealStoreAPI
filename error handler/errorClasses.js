@@ -19,7 +19,7 @@ class ValidationError extends AppError {
 
 class UnauthorizedUserError extends AppError {
 	constructor(credentials) {
-		super("Invalid username or password", "Forbidden Error", 403);
+		super("Invalid username or password", "Forbidden Error", 401);
 		this.credentialsProvided = credentials;
 	}
 }
@@ -73,6 +73,13 @@ class UserNotFound extends AppError {
 		this.userNotFound = intendedUser;
 	}
 }
+
+/*class LoginError extends AppError {
+	constructor(errorMsg, user) {
+		super(errorMsg, "Login Failed", 403);
+		this.rejectedUser = user;
+	}
+}*/
 
 module.exports.Errors = {
 	AppError,

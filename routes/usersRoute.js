@@ -7,5 +7,11 @@ router.route("/registro").post(controllers.registrarUsuario);
 router
 	.route("/verification/:id")
 	.post(controllers.verifyIfUserDoesntExist, controllers.verificarUsuario);
-
+router
+	.route("/oauth/login")
+	.post(
+		controllers.verifYRegistraCredenciales,
+		controllers.verifyIfUserDoesntExist,
+		controllers.loguearUsuario
+	);
 module.exports = router;

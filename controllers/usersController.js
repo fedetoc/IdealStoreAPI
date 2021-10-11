@@ -1,6 +1,8 @@
+const jwt = require("jsonwebtoken");
 const { Usuarios } = require("../models/users");
 const { catchAsync } = require("../utils");
 const { Errors } = require("../error handler/errorClasses");
+const { decrypt } = require("../encryption/encryption-module");
 const Email = require("../mails service/mailHandler");
 
 exports.registrarUsuario = catchAsync(async function (req, resp, next) {
@@ -23,6 +25,39 @@ exports.registrarUsuario = catchAsync(async function (req, resp, next) {
 	);
 });
 
+exports.verifYRegistraCredenciales = function (req, resp, next) {
+	const { user, password } = req.body;
+	if (user && password) {
+		const regexEmail = /(?=.*@)(?=.*@[a-z]*\.com(\.[a-z]{2,3})?$)/;
+		resp.locals = {
+			search: regexEmail.test(user) ? { email: user } : { name: user },
+			credentials: req.body,
+		};
+		return next();
+	}
+	next(new Errors.UnauthorizedUserError(req.body));
+};
+
+exports.loguearUsuario = catchAsync(async function (req, resp, next) {
+	const { credentials, userData } = resp.locals;
+	const decripted = await decrypt(userData.password);
+	if (decripted === credentials.password) {
+		const tokenSuccessResp = function (token) {
+			sendUserResponse(
+				resp.set({ "Authorization": "Bearer " + token }).cookie("user", token, {
+					httpOnly: true,
+					secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+				}),
+				200,
+				userData.email,
+				"Successfully logged in"
+			);
+		};
+		return signToken(userData.email, tokenSuccessResp);
+	}
+	next(new Errors.UnauthorizedUserError(credentials));
+});
+
 exports.verifyIfUserExist = catchAsync(async function (req, resp, next) {
 	const userMail = req.body.email;
 	const docFound = await Usuarios.findOne({ email: userMail });
@@ -31,14 +66,30 @@ exports.verifyIfUserExist = catchAsync(async function (req, resp, next) {
 
 exports.verifyIfUserDoesntExist = catchAsync(async function (req, resp, next) {
 	const userId = req.params.id;
-	const docFound = await Usuarios.findById(userId);
-	if (!docFound) next(new Errors.UserNotFound(userId));
-	else resp.locals.userData = docFound;
+	const { search, credentials } = resp.locals;
+	let docFound;
+	if (userId) docFound = await Usuarios.findById(userId);
+	else {
+		docFound = await Usuarios.findOne(search, "+password");
+	}
+	if (!docFound) {
+		const err = credentials
+			? new Errors.UnauthorizedUserError(credentials)
+			: new Errors.UserNotFound();
+		return next(err);
+	} else resp.locals.userData = docFound;
 });
 
 exports.verificarUsuario = catchAsync(async function (req, resp, next) {
 	const docToValidate = resp.locals.userData;
-	const { email, created } = docToValidate;
+	const { email, created, verified } = docToValidate;
+	if (verified)
+		return sendUserResponse(
+			resp,
+			200,
+			email,
+			"This user has already completed verification"
+		);
 	const timeLimit =
 		new Date(created).getTime() +
 		1000 * 60 * process.env.USER_VERIFICATION_TIMEMINS;
@@ -51,6 +102,23 @@ exports.verificarUsuario = catchAsync(async function (req, resp, next) {
 	}
 });
 
+const signToken = function (user, fnToken) {
+	const { JWT_EXP_TIME, JWT_KEY } = process.env;
+	const jwtPayload = {
+		user,
+		exp: Date.now() + JWT_EXP_TIME * 60 * 1000,
+	};
+	jwt.sign(jwtPayload, JWT_KEY, (err, token) => {
+		if (err) {
+			const msg =
+				err.name === "TokenExpiredError"
+					? "Su sesion ha expirado. Por favor registrese nuevamente"
+					: "Hubo un error en el login. Por favor intente loguearse mas tarde";
+			return next(new Errors.AppError(msg, "Login Error", 401));
+		}
+		fnToken(token);
+	});
+};
 const sendUserResponse = function (resp, code, user, msg) {
 	resp.status(code).json({
 		code,

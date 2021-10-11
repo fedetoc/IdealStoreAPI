@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { encrypt } = require("../encryption/encryption-module");
+const { encrypt, decrypt } = require("../encryption/encryption-module");
 const { Errors } = require("../error handler/errorClasses");
 
 const validatePasswordCoincidence = function (v) {
@@ -10,10 +10,19 @@ const validatePasswordCoincidence = function (v) {
 	);
 };
 
+const encryptPassword = async function (next) {
+	await encrypt(this.password, (err, encrypted) => {
+		if (err) return next(err);
+		this.password = encrypted;
+		this.confirmPassword = null;
+		return next();
+	});
+};
+
 const usersSchema = mongoose.Schema({
 	email: {
 		type: String,
-		required: [true, "El username es requerido"],
+		required: [true, "El email es requerido"],
 		match: [
 			/(?=.*@)(?=.*@[a-z]*\.com(\.[a-z]{2,3})?$)/,
 			"Email ingresado no valido",
@@ -61,15 +70,6 @@ const usersSchema = mongoose.Schema({
 		default: Date.now(),
 	},
 });
-
-const encryptPassword = async function (next) {
-	await encrypt(this.password, (err, encrypted) => {
-		if (err) return next(err);
-		this.password = encrypted;
-		this.confirmPassword = null;
-		return next();
-	});
-};
 
 usersSchema.pre("save", encryptPassword);
 exports.Usuarios = mongoose.model("Usuarios", usersSchema);
