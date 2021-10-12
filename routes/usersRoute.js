@@ -14,4 +14,5 @@ router
 		controllers.verifyIfUserDoesntExist,
 		controllers.loguearUsuario
 	);
+router.route("/oauth/logout").post(controllers.logOut);
 module.exports = router;

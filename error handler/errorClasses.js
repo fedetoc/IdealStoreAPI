@@ -74,6 +74,20 @@ class UserNotFound extends AppError {
 	}
 }
 
+class ForbiddenPath extends AppError {
+	constructor() {
+		super("Esta intentado ingresar a una ruta protegida. Por favor logueese", "Ruta Protegida", 403)
+	}
+}
+
+class ExpiredLogin extends AppError {
+	constructor(user, expiredAt) {
+		super("Su sesion ha expirado. Por favor registrese nuevamente", "Login Expired", 401);
+		this.user = user;
+		this.expiredAt = expiredAt
+	}
+}
+
 /*class LoginError extends AppError {
 	constructor(errorMsg, user) {
 		super(errorMsg, "Login Failed", 403);
@@ -90,4 +104,6 @@ module.exports.Errors = {
 	MailError,
 	VerificationFailed,
 	UserNotFound,
+	ForbiddenPath,
+	ExpiredLogin
 };

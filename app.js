@@ -5,9 +5,12 @@ dotenv.config({ path: "./.env" });
 const productRouter = require("./routes/productsRoute");
 const userRouter = require("./routes/usersRoute");
 const { errorHandle } = require("./error handler/errorHandler");
+const helmet = require("helmet");
+const cookieParser = require("cookie-parser");
 
 app.use(express.json({ limit: "200kb" }));
-
+app.use(helmet());
+app.use(cookieParser())
 app.use("/productos", productRouter);
 app.use("/usuarios", userRouter);
 

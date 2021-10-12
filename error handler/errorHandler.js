@@ -4,11 +4,13 @@ const { arrayToObject } = require("../utils");
 exports.errorHandle = function (err, resp) {
 	let formatedErr;
 	if (err.name === "ValidationError") formatedErr = handleValidationErr(err);
+	if (err.name === "TokenExpiredError") formatedErr = new Errors.ExpiredLogin("Not available", new Date(err.expiredAt));
 	if (
 		err instanceof Errors.UserAlreadyExist ||
 		err instanceof Errors.VerificationFailed ||
 		err instanceof Errors.UserNotFound ||
-		err instanceof Errors.UnauthorizedUserError
+		err instanceof Errors.UnauthorizedUserError ||
+		err instanceof Errors.ForbiddenPath 
 	)
 		formatedErr = err;
 	formatedErr =

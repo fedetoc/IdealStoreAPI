@@ -44,7 +44,7 @@ exports.loguearUsuario = catchAsync(async function (req, resp, next) {
 	if (decripted === credentials.password) {
 		const tokenSuccessResp = function (token) {
 			sendUserResponse(
-				resp.set({ "Authorization": "Bearer " + token }).cookie("user", token, {
+				resp.set({ "Authorization": "Bearer " + token }).cookie("token", token, {
 					httpOnly: true,
 					secure: req.secure || req.headers["x-forwarded-proto"] === "https",
 				}),
@@ -53,7 +53,7 @@ exports.loguearUsuario = catchAsync(async function (req, resp, next) {
 				"Successfully logged in"
 			);
 		};
-		return signToken(userData.email, tokenSuccessResp);
+		return signToken(userData._id, tokenSuccessResp);
 	}
 	next(new Errors.UnauthorizedUserError(credentials));
 });
@@ -102,19 +102,31 @@ exports.verificarUsuario = catchAsync(async function (req, resp, next) {
 	}
 });
 
-const signToken = function (user, fnToken) {
+exports.verifyLogin = catchAsync(async function (req, resp, next){
+	const {token} = req.cookies;
+	if (!token) return next(new Errors.ForbiddenPath());
+	const decoded = await jwt.verify(token, process.env.JWT_KEY);
+	resp.locals.userId = decoded.userId;
+});
+
+exports.logOut = function(req, resp, next) {
+	if (req.cookies.token) resp.clearCookie("token");
+	sendUserResponse(resp, 200, "Not available", "Logout successful")	
+}
+
+const signToken = function (userId, fnToken) {
 	const { JWT_EXP_TIME, JWT_KEY } = process.env;
 	const jwtPayload = {
-		user,
+		userId,
 		exp: Date.now() + JWT_EXP_TIME * 60 * 1000,
 	};
 	jwt.sign(jwtPayload, JWT_KEY, (err, token) => {
 		if (err) {
-			const msg =
+			const formatedErr =
 				err.name === "TokenExpiredError"
-					? "Su sesion ha expirado. Por favor registrese nuevamente"
-					: "Hubo un error en el login. Por favor intente loguearse mas tarde";
-			return next(new Errors.AppError(msg, "Login Error", 401));
+					? new Errors.ExpiredLogin(userId, new Date(err.expiredAt))
+					: new Errors.AppError("Hubo un error en el login. Por favor intente loguearse mas tarde", "Login Error", 401);
+			return next(formatedErr);
 		}
 		fnToken(token);
 	});
