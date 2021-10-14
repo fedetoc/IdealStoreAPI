@@ -29,12 +29,17 @@ const productosSchema = new mongoose.Schema({
 		},
 	},
 	postedBy: {
-		type: ObjectID,
+		type: mongoose.Schema.Types.ObjectID,
+		ref: "Usuarios",
 	},
 	postedOn: {
 		type: Date,
 		default: Date.now(),
 		immutable: true,
+	},
+	likes: {
+		type: [{ type: mongoose.Schema.Types.ObjectID, ref: "Usuarios" }],
+		default: [],
 	},
 });
 

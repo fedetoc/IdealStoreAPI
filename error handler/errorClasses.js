@@ -34,11 +34,11 @@ class RegistroError extends AppError {
 class UserAlreadyExist extends AppError {
 	constructor(email) {
 		super(
-			`Ya existe un usuario registrado con el mail ${email}`,
+			`Ya existe un usuario registrado con el mail ${email || "no disponible"}`,
 			"Error de registro",
 			401
 		),
-			(this.emailInserted = email);
+			(this.emailInserted = email || "No disponible");
 	}
 }
 
@@ -74,17 +74,36 @@ class UserNotFound extends AppError {
 	}
 }
 
+class ProductNotFound extends AppError {
+	constructor(intendedProduct = "Not available") {
+		super(
+			"El producto consultado no se encuentra en la BBDD",
+			"Not found",
+			404
+		);
+		this.productNotFound = intendedProduct;
+	}
+}
+
 class ForbiddenPath extends AppError {
 	constructor() {
-		super("Esta intentado ingresar a una ruta protegida. Por favor logueese", "Ruta Protegida", 403)
+		super(
+			"Esta intentado ingresar a una ruta protegida. Por favor logueese",
+			"Ruta Protegida",
+			403
+		);
 	}
 }
 
 class ExpiredLogin extends AppError {
 	constructor(user, expiredAt) {
-		super("Su sesion ha expirado. Por favor registrese nuevamente", "Login Expired", 401);
+		super(
+			"Su sesion ha expirado. Por favor registrese nuevamente",
+			"Login Expired",
+			401
+		);
 		this.user = user;
-		this.expiredAt = expiredAt
+		this.expiredAt = expiredAt;
 	}
 }
 
@@ -105,5 +124,6 @@ module.exports.Errors = {
 	VerificationFailed,
 	UserNotFound,
 	ForbiddenPath,
-	ExpiredLogin
+	ExpiredLogin,
+	ProductNotFound,
 };

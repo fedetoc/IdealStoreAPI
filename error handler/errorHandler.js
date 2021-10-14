@@ -4,18 +4,28 @@ const { arrayToObject } = require("../utils");
 exports.errorHandle = function (err, resp) {
 	let formatedErr;
 	if (err.name === "ValidationError") formatedErr = handleValidationErr(err);
-	if (err.name === "TokenExpiredError") formatedErr = new Errors.ExpiredLogin("Not available", new Date(err.expiredAt));
+	if (err.name === "TokenExpiredError")
+		formatedErr = new Errors.ExpiredLogin(
+			"Not available",
+			new Date(err.expiredAt)
+		);
 	if (
 		err instanceof Errors.UserAlreadyExist ||
 		err instanceof Errors.VerificationFailed ||
 		err instanceof Errors.UserNotFound ||
 		err instanceof Errors.UnauthorizedUserError ||
-		err instanceof Errors.ForbiddenPath 
+		err instanceof Errors.ForbiddenPath
 	)
 		formatedErr = err;
-	formatedErr =
-		formatedErr || new Errors.AppError("Ocurrio un error inesperado");
-	sendErrorResponse(err, formatedErr, resp);
+	if (err.name === "CastError" && err.message.includes("Productos"))
+		formatedErr = new Errors.ProductNotFound(err.value);
+
+	const isInProduction = process.env.NODE_ENV === "production";
+	const defaultErr = isInProduction
+		? new Errors.AppError("Ocurrio un error inesperado")
+		: err;
+	formatedErr = formatedErr || defaultErr;
+	sendErrorResponse(formatedErr, resp, !isInProduction);
 };
 
 const handleValidationErr = function (err) {
@@ -34,13 +44,12 @@ const handleValidationErr = function (err) {
 	);
 };
 
-const sendErrorResponse = function (originalErr, formatedErr, resp) {
+const sendErrorResponse = function (formatedErr, resp, addStack = true) {
 	const { code, message } = formatedErr;
-	const prod = process.env.NODE_ENV === "production";
-	resp.status(code).json({
-		status: code,
+	resp.status(code || 500).json({
+		status: code || 500,
 		message: message,
-		details: !prod ? originalErr : formatedErr,
-		trace: !prod && formatedErr.stack,
+		details: formatedErr,
+		stack: addStack && formatedErr.stack,
 	});
 };

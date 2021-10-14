@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 const { Usuarios } = require("../models/users");
 const { catchAsync } = require("../utils");
 const { Errors } = require("../error handler/errorClasses");
@@ -6,6 +7,7 @@ const { decrypt } = require("../encryption/encryption-module");
 const Email = require("../mails service/mailHandler");
 
 exports.registrarUsuario = catchAsync(async function (req, resp, next) {
+	await verifyIfUserExist({ email: req.body.email }, true);
 	delete req.body.verified;
 	const userDoc = new Usuarios(req.body);
 	userDoc.isNew = true;
@@ -25,29 +27,42 @@ exports.registrarUsuario = catchAsync(async function (req, resp, next) {
 	);
 });
 
-exports.verifYRegistraCredenciales = function (req, resp, next) {
+exports.verifYRegistraCredenciales = catchAsync(async function (
+	req,
+	resp,
+	next
+) {
 	const { user, password } = req.body;
 	if (user && password) {
 		const regexEmail = /(?=.*@)(?=.*@[a-z]*\.com(\.[a-z]{2,3})?$)/;
-		resp.locals = {
-			search: regexEmail.test(user) ? { email: user } : { name: user },
-			credentials: req.body,
-		};
+		const searchParam = regexEmail.test(user)
+			? { email: user }
+			: { name: user };
+		const errIfUserDoesntExist = new Errors.UnauthorizedUserError(req.body);
+		resp.locals.userData = await verifyIfUserExist(
+			searchParam,
+			false,
+			errIfUserDoesntExist,
+			true
+		);
 		return next();
 	}
 	next(new Errors.UnauthorizedUserError(req.body));
-};
+});
 
 exports.loguearUsuario = catchAsync(async function (req, resp, next) {
-	const { credentials, userData } = resp.locals;
+	const { userData } = resp.locals;
+	const { password: passwordProvided } = req.body;
 	const decripted = await decrypt(userData.password);
-	if (decripted === credentials.password) {
+	if (decripted === passwordProvided) {
 		const tokenSuccessResp = function (token) {
 			sendUserResponse(
-				resp.set({ "Authorization": "Bearer " + token }).cookie("token", token, {
-					httpOnly: true,
-					secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-				}),
+				resp
+					.set({ "Authorization": "Bearer " + token })
+					.cookie("token", token, {
+						httpOnly: true,
+						secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+					}),
 				200,
 				userData.email,
 				"Successfully logged in"
@@ -55,33 +70,16 @@ exports.loguearUsuario = catchAsync(async function (req, resp, next) {
 		};
 		return signToken(userData._id, tokenSuccessResp);
 	}
-	next(new Errors.UnauthorizedUserError(credentials));
-});
-
-exports.verifyIfUserExist = catchAsync(async function (req, resp, next) {
-	const userMail = req.body.email;
-	const docFound = await Usuarios.findOne({ email: userMail });
-	if (docFound) next(new Errors.UserAlreadyExist(userMail));
-});
-
-exports.verifyIfUserDoesntExist = catchAsync(async function (req, resp, next) {
-	const userId = req.params.id;
-	const { search, credentials } = resp.locals;
-	let docFound;
-	if (userId) docFound = await Usuarios.findById(userId);
-	else {
-		docFound = await Usuarios.findOne(search, "+password");
-	}
-	if (!docFound) {
-		const err = credentials
-			? new Errors.UnauthorizedUserError(credentials)
-			: new Errors.UserNotFound();
-		return next(err);
-	} else resp.locals.userData = docFound;
+	next(new Errors.UnauthorizedUserError(req.body));
 });
 
 exports.verificarUsuario = catchAsync(async function (req, resp, next) {
-	const docToValidate = resp.locals.userData;
+	const { id } = req.params;
+	const docToValidate = await verifyIfUserExist(
+		id,
+		false,
+		new Errors.UserNotFound(id)
+	);
 	const { email, created, verified } = docToValidate;
 	if (verified)
 		return sendUserResponse(
@@ -102,17 +100,39 @@ exports.verificarUsuario = catchAsync(async function (req, resp, next) {
 	}
 });
 
-exports.verifyLogin = catchAsync(async function (req, resp, next){
-	const {token} = req.cookies;
+exports.verifyLogin = catchAsync(async function (req, resp, next) {
+	const { token } = req.cookies;
 	if (!token) return next(new Errors.ForbiddenPath());
 	const decoded = await jwt.verify(token, process.env.JWT_KEY);
-	resp.locals.userId = decoded.userId;
+	resp.locals.userId = mongoose.Types.ObjectId(decoded.userId);
 });
 
-exports.logOut = function(req, resp, next) {
+exports.logOut = function (req, resp, next) {
 	if (req.cookies.token) resp.clearCookie("token");
-	sendUserResponse(resp, 200, "Not available", "Logout successful")	
-}
+	sendUserResponse(resp, 200, "Not available", "Logout successful");
+};
+
+const verifyIfUserExist = async function (
+	searchObjOrId,
+	errIfExistBool,
+	errorObj,
+	requirePassword = false
+) {
+	if (typeof searchObjOrId === "string")
+		docFound = await Usuarios.findById(searchObjOrId);
+	else {
+		docFound = await Usuarios.findOne(
+			searchObjOrId,
+			requirePassword && "+password"
+		);
+	}
+	const defaultErr = errIfExistBool
+		? new Errors.UserAlreadyExist(docfound ? docFound.email : undefined)
+		: new Errors.UserNotFound();
+	const docExist = docFound ? true : false;
+	if (docExist === errIfExistBool) throw errorObj || defaultErr;
+	return !errIfExistBool && docFound;
+};
 
 const signToken = function (userId, fnToken) {
 	const { JWT_EXP_TIME, JWT_KEY } = process.env;
@@ -125,12 +145,17 @@ const signToken = function (userId, fnToken) {
 			const formatedErr =
 				err.name === "TokenExpiredError"
 					? new Errors.ExpiredLogin(userId, new Date(err.expiredAt))
-					: new Errors.AppError("Hubo un error en el login. Por favor intente loguearse mas tarde", "Login Error", 401);
+					: new Errors.AppError(
+							"Hubo un error en el login. Por favor intente loguearse mas tarde",
+							"Login Error",
+							401
+					  );
 			return next(formatedErr);
 		}
 		fnToken(token);
 	});
 };
+
 const sendUserResponse = function (resp, code, user, msg) {
 	resp.status(code).json({
 		code,
