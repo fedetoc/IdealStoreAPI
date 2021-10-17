@@ -1,6 +1,12 @@
-const { createCipheriv, createDecipheriv, randomBytes } = require("crypto");
+const {
+	createCipheriv,
+	createDecipheriv,
+	randomBytes,
+	createHmac,
+} = require("crypto");
 const { promisify } = require("util");
 const secret = process.env.ENCRYPT_SECRET;
+const shasecret = process.env.SHA_ENCRYPT_SECRET;
 const algorythm = process.env.ENCRYPT_ALGORYTHM;
 
 const encryption = function (toBeEncrypted, fn) {
@@ -24,6 +30,10 @@ const encryption = function (toBeEncrypted, fn) {
 	else fn(null, encrypted);
 };
 
+const sha_encryption = function (toBeEncrypted) {
+	return createHmac("sha256", shasecret).update(toBeEncrypted).digest("hex");
+};
+
 const decryption = function (hashToBeDecrypted, fn) {
 	const encrypted = hashToBeDecrypted.split(":");
 	const iv = Buffer.from(encrypted[1], "hex");
@@ -45,3 +55,4 @@ const decryption = function (hashToBeDecrypted, fn) {
 
 exports.encrypt = promisify(encryption);
 exports.decrypt = promisify(decryption);
+exports.encryptWithSha = promisify(sha_encryption);

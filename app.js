@@ -6,11 +6,19 @@ const productRouter = require("./routes/productsRoute");
 const userRouter = require("./routes/usersRoute");
 const { errorHandle } = require("./error handler/errorHandler");
 const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
+const { Errors } = require("./error handler/errorClasses");
 
+const limiter = rateLimit({
+	max: process.env.RATE_LIMIT_REQUESTS,
+	windowMs: process.env.RATE_LIMIT * 60 * 1000,
+	message: new Errors.RateLimitExceeded(process.env.RATE_LIMIT),
+});
+app.use(limiter);
 app.use(express.json({ limit: "200kb" }));
 app.use(helmet());
-app.use(cookieParser())
+app.use(cookieParser());
 app.use("/productos", productRouter);
 app.use("/usuarios", userRouter);
 

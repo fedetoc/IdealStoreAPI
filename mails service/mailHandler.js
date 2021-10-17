@@ -40,6 +40,21 @@ class Email {
 		});
 	}
 
+	async sendPasswordResetEmail(urlPassword) {
+		const html = pug.renderFile(
+			`${__dirname}/Templates/Welcome/forgotPassword.pug`,
+			{
+				urlPassword,
+			}
+		);
+		await this._sendmail({
+			from: this.mailFrom,
+			subject: "Password Reset",
+			html,
+			to: this.mailDestination,
+		});
+	}
+
 	_checkConnection(transport) {
 		let error;
 		transport.verify((err, _) => (error = err));

@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const { Errors } = require("../error handler/errorClasses");
 const { Productos } = require("../models/products");
 const { catchAsync, calcSkippedDocs } = require("../utils");
@@ -21,6 +22,18 @@ exports.postAProduct = catchAsync(async function (req, resp, next) {
 	const newProduct = new Productos(productData);
 	await newProduct.save();
 	sendOkResponse(resp, {}, 201, "Created");
+});
+
+exports.modifyProduct = catchAsync(async function (req, resp, next) {
+	const { price, description, name } = req.body;
+	const prodId = mongoose.Types.ObjectId(req.params.id);
+	const docModified = await Productos.findOneAndUpdate(
+		{ _id: prodId, postedBy: resp.locals.userId },
+		{ price, description, name },
+		{ new: true, projection: "-likes -postedBy -_id" }
+	);
+	if (!docModified) return next(new Errors.ProductNotFound(prodId));
+	sendOkResponse(resp, docModified);
 });
 
 exports.likeProduct = catchAsync(async function (req, resp, next) {

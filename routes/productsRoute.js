@@ -4,9 +4,11 @@ const controller = require("../controllers/productsController");
 const { verifyLogin } = require("../controllers/usersController");
 
 router.route("/").get(controller.getAllProducts);
-router.route("/:id").get(controller.getProductById);
-
-///////////////Protected Routes /////////////////////
+router
+	.route("/:id")
+	.get(controller.getProductById)
+	///////////////Protected Routes /////////////////////
+	.patch(verifyLogin, controller.modifyProduct);
 router.use(verifyLogin);
 router.route("/").post(controller.postAProduct);
 router

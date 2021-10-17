@@ -107,6 +107,17 @@ class ExpiredLogin extends AppError {
 	}
 }
 
+class RateLimitExceeded extends AppError {
+	constructor(remainingTimeBeforeRetry) {
+		super(
+			"Se excedio la cantidad de peticiones permitidas",
+			"Limite Peticiones Excedido",
+			429
+		);
+		this.remainingTime = remainingTimeBeforeRetry;
+	}
+}
+
 /*class LoginError extends AppError {
 	constructor(errorMsg, user) {
 		super(errorMsg, "Login Failed", 403);
@@ -126,4 +137,5 @@ module.exports.Errors = {
 	ForbiddenPath,
 	ExpiredLogin,
 	ProductNotFound,
+	RateLimitExceeded,
 };
