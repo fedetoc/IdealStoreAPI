@@ -64,6 +64,10 @@ const usersSchema = mongoose.Schema({
 		type: Boolean,
 		default: false,
 	},
+	allowedToChangePassword: {
+		type: Boolean,
+		default: false,
+	},
 	created: {
 		type: Date,
 		immutable: true,

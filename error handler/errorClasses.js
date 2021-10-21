@@ -31,6 +31,13 @@ class RegistroError extends AppError {
 	}
 }
 
+class MissingData extends AppError {
+	constructor(requiredFields, message) {
+		super(message, "Faltan datos para completar esta solicitud", 400);
+		this.missingFields = requiredFields;
+	}
+}
+
 class UserAlreadyExist extends AppError {
 	constructor(email) {
 		super(
@@ -61,7 +68,7 @@ class VerificationFailed extends AppError {
 		const msg =
 			reason === "Time expired"
 				? `No fue posible verificar el usuario, expiro el periodo de ${process.env.USER_VERIFICATION_TIMEMINS} minutos. Por favor registrese nuevamente`
-				: "Hubo un error al verificar al usuaio. Intente nuevamente";
+				: "Hubo un error al verificar al usuario. Intente nuevamente";
 		super(msg, "Verification Failed", 401);
 		(this.user = user), (this.signInDate = signInDate);
 	}
@@ -88,7 +95,7 @@ class ProductNotFound extends AppError {
 class ForbiddenPath extends AppError {
 	constructor() {
 		super(
-			"Esta intentado ingresar a una ruta protegida. Por favor logueese",
+			"Esta intentado ingresar a una ruta protegida. Por favor logueese o vuelva a iniciar la verificacion",
 			"Ruta Protegida",
 			403
 		);
@@ -138,4 +145,5 @@ module.exports.Errors = {
 	ExpiredLogin,
 	ProductNotFound,
 	RateLimitExceeded,
+	MissingData,
 };

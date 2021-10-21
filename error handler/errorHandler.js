@@ -14,7 +14,8 @@ exports.errorHandle = function (err, resp) {
 		err instanceof Errors.VerificationFailed ||
 		err instanceof Errors.UserNotFound ||
 		err instanceof Errors.UnauthorizedUserError ||
-		err instanceof Errors.ForbiddenPath
+		err instanceof Errors.ForbiddenPath ||
+		err instanceof Errors.MissingData
 	)
 		formatedErr = err;
 	if (err.name === "CastError" && err.message.includes("Productos"))

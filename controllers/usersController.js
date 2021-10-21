@@ -3,7 +3,11 @@ const mongoose = require("mongoose");
 const { Usuarios } = require("../models/users");
 const { catchAsync } = require("../utils");
 const { Errors } = require("../error handler/errorClasses");
-const { decrypt } = require("../encryption/encryption-module");
+const {
+	decrypt,
+	generateRandom,
+	encryptWithSha,
+} = require("../encryption/encryption-module");
 const Email = require("../mails service/mailHandler");
 
 exports.registrarUsuario = catchAsync(async function (req, resp, next) {
@@ -110,6 +114,86 @@ exports.verifyLogin = catchAsync(async function (req, resp, next) {
 exports.logOut = function (req, resp, next) {
 	if (req.cookies.token) resp.clearCookie("token");
 	sendUserResponse(resp, 200, "Not available", "Logout successful");
+};
+
+exports.passwordReset = catchAsync(async function (req, resp, next) {
+	const { email } = req.query;
+	const findUser = await Usuarios.findOne({ email });
+	const idUser = findUser ? findUser.id : generateRandom(12.5);
+	const token = idUser + ":" + generateRandom(127);
+	const encryptedToken = await encryptWithSha(token);
+	findUser && (await sendLinkPasswordReset(req, encryptedToken, email));
+	const cookieOptions = {
+		httpOnly: true,
+		secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+		exp: process.env.PASSWORD_RESET_VERIFICATION_TIMEMINS,
+	};
+	sendUserResponse(
+		resp.cookie("passToken", token, cookieOptions),
+		200,
+		email,
+		"En caso que el email provisto corresponda a un usuario registrado, recibira un email conteniendo el link para resetear la contraseña"
+	);
+});
+
+exports.verifyPasswordAuthLink = catchAsync(async function (req, resp, next) {
+	const { token } = req.params;
+	const { passToken: cookieToken } = req.cookies;
+	const userId = await validatePassCookie(cookieToken, token);
+	console.log("paso la validacion");
+	const user = await Usuarios.findByIdAndUpdate(
+		userId,
+		{ allowedToChangePassword: true },
+		{ select: "email" }
+	);
+	sendUserResponse(
+		resp,
+		200,
+		user.email,
+		"La verificacion ha concluido satisfactoriamente. Por favor cambie su contraseña"
+	);
+});
+
+exports.changePassword = catchAsync(async function (req, resp, next) {
+	const userId = await validatePassCookie(req.cookies.passToken);
+	const { password, confirmPassword } = req.body;
+	if (!password || !confirmPassword)
+		return next(new Errors.MissingData(["password", "confirmPassword"]));
+	const userDoc = await verifyIfUserExist(userId, false);
+	if (!userDoc.allowedToChangePassword)
+		return next(new Errors.VerificationFailed(userDoc.email));
+	const docUpdate = {
+		password,
+		confirmPassword,
+		allowedToChangePassword: false,
+		isNew: false,
+	};
+	Object.assign(userDoc, docUpdate);
+	await userDoc.save({ validateModifiedOnly: true });
+	resp.clearCookie("passToken");
+	sendUserResponse(
+		resp,
+		200,
+		userDoc.email,
+		"Password reset completed. You may login again"
+	);
+});
+
+const validatePassCookie = async function (cookieToken, linkToken) {
+	if (!cookieToken) throw new Errors.ForbiddenPath();
+	if (linkToken && (await encryptWithSha(cookieToken)) !== linkToken)
+		throw new Errors.VerificationFailed(
+			"Not available",
+			"Verification didn't pass"
+		);
+	return cookieToken.split(":")[0];
+};
+
+const sendLinkPasswordReset = async function (req, token, destinationEmail) {
+	const link = `http://${req.hostname}${
+		":" + process.env.PORT
+	}/usuarios/oauth/forgotPassword/${token}?_method=PATCH`;
+	await new Email(destinationEmail).sendPasswordResetEmail(link);
 };
 
 const verifyIfUserExist = async function (

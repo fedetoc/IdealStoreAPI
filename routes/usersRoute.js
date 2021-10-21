@@ -8,4 +8,11 @@ router
 	.route("/oauth/login")
 	.post(controllers.verifYRegistraCredenciales, controllers.loguearUsuario);
 router.route("/oauth/logout").post(controllers.logOut);
+router
+	.route("/oauth/forgotPassword")
+	.post(controllers.passwordReset)
+	.patch(controllers.changePassword);
+router
+	.route("/oauth/forgotPassword/:token")
+	.post(controllers.verifyPasswordAuthLink);
 module.exports = router;

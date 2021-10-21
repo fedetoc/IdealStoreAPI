@@ -31,7 +31,17 @@ const encryption = function (toBeEncrypted, fn) {
 };
 
 const sha_encryption = function (toBeEncrypted) {
-	return createHmac("sha256", shasecret).update(toBeEncrypted).digest("hex");
+	return new Promise((resolve, reject) => {
+		const encrypted = createHmac("sha256", shasecret)
+			.update(toBeEncrypted)
+			.digest("hex");
+		encrypted && resolve(encrypted);
+		reject("No se pudo generar el token");
+	});
+};
+
+const generateRandomBytes = function (size) {
+	return randomBytes(size).toString("hex");
 };
 
 const decryption = function (hashToBeDecrypted, fn) {
@@ -55,4 +65,5 @@ const decryption = function (hashToBeDecrypted, fn) {
 
 exports.encrypt = promisify(encryption);
 exports.decrypt = promisify(decryption);
-exports.encryptWithSha = promisify(sha_encryption);
+exports.encryptWithSha = sha_encryption;
+exports.generateRandom = generateRandomBytes;
