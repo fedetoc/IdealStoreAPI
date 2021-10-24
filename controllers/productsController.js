@@ -5,8 +5,8 @@ const { catchAsync, calcSkippedDocs } = require("../utils");
 exports.getAllProducts = catchAsync(async function (req, resp, next) {
 	let query = Productos.find({}, "-code -description")
 		.sort("-likes")
-		.populate("likes", "name")
-		.populate("postedBy", "name");
+		.populate("likes", "name -_id")
+		.populate("postedBy", "name -_id");
 	const page = req.query.page;
 	if (page > 0) query = query.skip(calcSkippedDocs(page)).limit(20);
 	sendOkResponse(resp, await query);
@@ -56,7 +56,7 @@ exports.getUserPublishedProducts = catchAsync(async function (req, resp, next) {
 	const { userId } = resp.locals;
 	const userProducts = await Productos.find(
 		{ postedBy: userId },
-		"-likes -_id"
+		"-likes -postedBy"
 	);
 	sendOkResponse(resp, userProducts);
 });

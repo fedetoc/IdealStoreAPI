@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const controllers = require("../controllers/usersController");
+const controllers = require("../controllers/usersControllers/usersController");
 
-router.route("/registro").post(controllers.registrarUsuario);
-router.route("/verification/:id").post(controllers.verificarUsuario);
+router.route("/registro").post(controllers.registerUser);
+router.route("/verification/:id").post(controllers.verifyUserRegistration);
 router
 	.route("/oauth/login")
-	.post(controllers.verifYRegistraCredenciales, controllers.loguearUsuario);
+	.post(controllers.verifyCredentials, controllers.loginUser);
 router.route("/oauth/logout").post(controllers.logOut);
 router
 	.route("/oauth/forgotPassword")

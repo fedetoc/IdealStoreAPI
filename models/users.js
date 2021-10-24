@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { encrypt, decrypt } = require("../encryption/encryption-module");
+const { encrypt } = require("../encryption/encryption-module");
 const { Errors } = require("../error handler/errorClasses");
 
 const validatePasswordCoincidence = function (v) {

@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/productsController");
-const { verifyLogin } = require("../controllers/usersController");
+const {
+	verifyLogin,
+} = require("../controllers/usersControllers/usersController");
 
 const idMongoRouteParam = "/:id([0-9a-z]{24})";
 const generalRoute = router.route("/$");
