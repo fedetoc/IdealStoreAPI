@@ -56,6 +56,7 @@ exports.verifYRegistraCredenciales = catchAsync(async function (
 
 exports.loguearUsuario = catchAsync(async function (req, resp, next) {
 	const { userData } = resp.locals;
+	console.log("log");
 	const { password: passwordProvided } = req.body;
 	const decripted = await decrypt(userData.password);
 	if (decripted === passwordProvided) {

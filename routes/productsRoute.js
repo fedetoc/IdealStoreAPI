@@ -3,16 +3,22 @@ const router = express.Router();
 const controller = require("../controllers/productsController");
 const { verifyLogin } = require("../controllers/usersController");
 
-router.route("/").get(controller.getAllProducts);
+const idMongoRouteParam = "/:id([0-9a-z]{24})";
+const generalRoute = router.route("/$");
+
+generalRoute
+	.get(controller.getAllProducts)
+	.post(verifyLogin, controller.postAProduct);
 router
-	.route("/:id")
+	.route(idMongoRouteParam)
 	.get(controller.getProductById)
 	///////////////Protected Routes /////////////////////
 	.patch(verifyLogin, controller.modifyProduct);
-router.use(verifyLogin);
-router.route("/").post(controller.postAProduct);
 router
-	.route("/likes/:id")
-	.get(controller.getPeopleWhoLiked)
-	.patch(controller.likeProduct);
+	.route("/likes" + idMongoRouteParam)
+	.get(verifyLogin, controller.getPeopleWhoLiked)
+	.patch(verifyLogin, controller.likeProduct);
+router
+	.route("/misProductos")
+	.get(verifyLogin, controller.getUserPublishedProducts);
 module.exports = router;

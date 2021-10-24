@@ -52,6 +52,15 @@ exports.getPeopleWhoLiked = catchAsync(async function (req, resp, next) {
 	sendOkResponse(resp, product);
 });
 
+exports.getUserPublishedProducts = catchAsync(async function (req, resp, next) {
+	const { userId } = resp.locals;
+	const userProducts = await Productos.find(
+		{ postedBy: userId },
+		"-likes -_id"
+	);
+	sendOkResponse(resp, userProducts);
+});
+
 const sendOkResponse = function (respObj, data, statusCode = 200, msg = "OK") {
 	respObj.status(statusCode).json({ status: statusCode, message: msg, data });
 };
