@@ -41,3 +41,11 @@ A JSON API ideal for being consumed by any e-commerce's front-end. This was buil
   emailed token is verified.
 
   > The request's body must be a json containing _password and confirmPassword_ properties.
+
+## Link to deployed project and
+
+[Ideal Store API](https://idealstoreapi.herokuapp.com/) is now deployed! Please feel free to visit.
+
+**Important!** As this API was made to be consumed by a front, there are some features (like password reset) that uses cookies for the verification processes. These may fail if the involved routes are fetched from different clients.
+
+_Note_: This API was made to be shown as an example and not to be used in any real project. For this reason it does't have CORS implemented.
