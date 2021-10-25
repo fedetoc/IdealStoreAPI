@@ -4,7 +4,7 @@
 	"description": "An online store API for Node course's final project",
 	"main": "main.js",
 	"scripts": {
-		"start": "nodemon ./server.js"
+		"start": "node ./server.js"
 	},
 	"author": "Federico Tocco",
 	"license": "ISC",
@@ -33,5 +33,8 @@
 		"useTabs": true,
 		"jsxBracketSameLine": true,
 		"htmlWhitespaceSensitivity": "strict"
+	},
+	"engines": {
+		"node" : ">=12.0.0"
 	}
 }

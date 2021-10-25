@@ -5,10 +5,10 @@ const dbCredentials = {
 	password: process.env.DBPASSWORD,
 };
 
-const port = process.env.PORT;
+const port = process.env.PORT || 3000;
 
 const connectionString = process.env.DBCONNECTION.replace(
-	/\<(USER|PASSWORD)\>/g,
+	/\-(USER|PASSWORD)\-/g,
 	(_, p1) => dbCredentials[p1.toLowerCase()]
 );
 
