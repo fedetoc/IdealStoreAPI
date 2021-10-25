@@ -1,8 +1,5 @@
 exports.catchAsync = function (fn) {
-	return (req, resp, next) =>
-		fn(req, resp, next)
-			.then(() => next())
-			.catch(err => next(err));
+	return (req, resp, next) => fn(req, resp, next).catch(err => next(err));
 };
 
 exports.catchAsyncSimple = function (fn) {

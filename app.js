@@ -26,16 +26,24 @@ app.use(hpp());
 app.use(compression());
 app.use(xss());
 
+app.use("/$", (req, resp, _) => {
+	resp.status(200).json({
+		status: "OK",
+		code: 200,
+		message: "Bienvenido a Ideal Store API!",
+	});
+});
 app.use("/productos", productRouter);
 app.use("/usuarios", userRouter);
 
-app.all("/", (req, resp, _) => {
-	const stat = 404;
-	resp.status(stat).json({
-		status: "Not Found",
-		code: stat,
-		message: `El dominio ${req.originalUrl} no existe o esta en construccion.`,
-	});
+app.all("*", (req, resp, next) => {
+	return next(
+		new Errors.AppError(
+			`El dominio ${req.originalUrl} no existe o esta en construccion.`,
+			"Not Found",
+			404
+		)
+	);
 });
 
 app.use((err, _, resp, __) => {
