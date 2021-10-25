@@ -14,15 +14,18 @@
 	},
 	"dependencies": {
 		"body-parser": "^1.19.0",
+		"compression": "^1.7.4",
 		"cookie-parser": "^1.4.5",
 		"dotenv": "^10.0.0",
 		"express": "^4.17.1",
 		"express-rate-limit": "^5.5.0",
 		"helmet": "^4.6.0",
+		"hpp": "^0.2.3",
 		"jsonwebtoken": "^8.5.1",
 		"mongoose": "^6.0.8",
 		"nodemailer": "^6.6.5",
-		"pug": "^3.0.2"
+		"pug": "^3.0.2",
+		"xss-clean": "^0.1.1"
 	},
 	"prettier": {
 		"arrowParens": "avoid",

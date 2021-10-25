@@ -92,14 +92,12 @@ class Email {
 	}
 
 	get transportSetup() {
-		console.log("se ejecuta el get de transport");
 		return process.env.NODE_ENV === "production"
 			? this.sendgrid
 			: this.mailtrap;
 	}
 
 	get mailDestination() {
-		console.log("se ejecuta el get de mail destination");
 		const mailtrapRecipient = "3d152b88e3-751072@inbox.mailtrap.io";
 		return process.env.NODE_ENV === "production"
 			? this.mailTo

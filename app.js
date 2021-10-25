@@ -8,6 +8,9 @@ const { errorHandle } = require("./error handler/errorHandler");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
+const hpp = require("hpp");
+const xss = require("xss-clean");
+const compression = require("compression");
 const { Errors } = require("./error handler/errorClasses");
 
 const limiter = rateLimit({
@@ -19,6 +22,10 @@ app.use(limiter);
 app.use(express.json({ limit: "200kb" }));
 app.use(helmet());
 app.use(cookieParser());
+app.use(hpp());
+app.use(compression());
+app.use(xss());
+
 app.use("/productos", productRouter);
 app.use("/usuarios", userRouter);
 
