@@ -42,7 +42,7 @@ A JSON API ideal for being consumed by any e-commerce's front-end. This was buil
 
   > The request's body must be a json containing _password and confirmPassword_ properties.
 
-## Link to deployed project and
+## Link to deployed project and important notes
 
 [Ideal Store API](https://idealstoreapi.herokuapp.com/) is now deployed! Please feel free to visit.
 
